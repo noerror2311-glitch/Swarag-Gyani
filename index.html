@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swarag-Gyani – Emergency Numbers India</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Hind:wght@400;600&amp;display=swap">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="chatbot.css">
+<link rel="stylesheet" href="search.css">
+</head>
+<body>
+<header class="hero">
+<div class="stripe"><i></i><i></i><i></i></div>
+<div class="hero-in">
+<p class="tag">Emergency numbers for India</p>
+<h1>Swarag-Gyani</h1>
+<p class="sub">Know who to call, fast. Numbers for your area, one tap away.</p>
+<a class="sos" href="tel:112" aria-label="Call 112 now">
+<span class="ring"></span>
+<b>112</b>
+<span class="sos-t">Police, fire and ambulance<small>One number, all over India</small></span>
+<span class="call">Call 112</span>
+</a>
+</div>
+</header>
+
+<main class="wrap">
+<section class="panel">
+<label for="area">Your area</label>
+<select id="area"></select>
+<button id="loc" type="button">📍 Use my location</button>
+<span id="locMsg" role="status"></span>
+</section>
+
+<section class="search">
+<label for="sq" style="position:absolute;left:-9999px">Search any helpline number</label>
+<div class="sbox">
+<span class="sico" aria-hidden="true">🔍</span>
+<input id="sq" type="search" role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list" placeholder="Search any number: fire, fraud, train, hospital..." autocomplete="off">
+<ul id="sug" role="listbox" hidden></ul>
+</div>
+</section>
+<div id="sres" hidden>
+<h2 id="sresTitle"></h2>
+<div class="grid" id="sresList"></div>
+</div>
+
+<h2 id="areaTitle">Delhi</h2>
+<div class="grid" id="areaList"></div>
+
+<h2>National helplines</h2>
+<input id="q" type="search" placeholder="Search a helpline, e.g. cyber, women, railway" aria-label="Search helplines">
+<div class="grid" id="natList"></div>
+<p class="empty" id="none" hidden>No helpline matches your search. Try another word.</p>
+
+<p class="note">Numbers are collected from public government and news sources and can change. Tap a number to call. If you are unsure which number to use, dial 112. Please verify with your local authority for the latest list.</p>
+</main>
+<script src="script.js"></script>
+<script src="location.js"></script>
+<script src="search.js"></script>
+<script src="chatbot.js"></script>
+</body>
+</html>
