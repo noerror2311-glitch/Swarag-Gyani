@@ -3,8 +3,8 @@
 // Urgent keywords also show instant tap-to-call numbers from script.js (S, BASE, NAT) before the AI answers.
 
 // Your server (server.js) receives the question and talks to Puter, so visitors never log in.
-// If the server lives on another address later, use the full URL, e.g. "https://my-server.com/api/chat".
-var CHAT_URL="/api/chat";
+// The website is on GitHub Pages, so this must be the full address of the hosted server.
+var CHAT_URL="https://swarag-gyani.onrender.com/api/chat";
 
 var INTENTS=[
 {re:/fire|smoke|burning|blaze|flames/,k:"fire",t:"Fire brigade"},
