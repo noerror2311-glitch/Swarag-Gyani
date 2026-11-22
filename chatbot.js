@@ -238,7 +238,8 @@ function fail(err){
 history.pop();
 var msg=err&&err.message&&/too many|too large/i.test(err.message)?err.message:"";
 if(!msg&&err&&!err.status)msg="Could not reach the AI server. Check your internet and try again in a minute. For emergencies call 112.";
-if(qk.res.length&&!msg){wait.remove()}else{wait.className="ai-m err";wait.textContent=msg||"The AI is not available right now. For emergencies call 112."}
+wait.className="ai-m err";
+wait.textContent=msg||"The AI is not available right now. For emergencies call 112."+(err&&err.status?" [error "+err.status+": "+String(err.message).slice(0,60)+"]":"");
 done();
 }
 postRetry(JSON.stringify({messages:history.slice(-10),context:systemPrompt(),images:att?att.images:[],kind:att?att.kind:""}),function(n){
