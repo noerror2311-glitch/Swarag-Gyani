@@ -177,6 +177,7 @@ http.createServer(function (req, res) {
     if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
   }
   const url = req.url.split("?")[0];
+  if (url === "/api/health") return send(res, 200, { ok: true });
   if (url === "/api/chat") return req.method === "POST" ? chat(req, res) : send(res, 405, { error: "POST only" });
   if (req.method !== "GET" && req.method !== "HEAD") return notFound(res);
   serve(req, res);
