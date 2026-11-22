@@ -5,6 +5,10 @@
 // Your server (server.js) receives the question and talks to Puter, so visitors never log in.
 // The website is on GitHub Pages, so this must be the full address of the hosted server.
 var CHAT_URL="https://swarag-gyani.onrender.com/api/chat";
+// The free Render server falls asleep when idle. We wake it as soon as the page opens,
+// and if a message still hits a sleeping server we retry for about a minute.
+var HEALTH_URL=CHAT_URL.replace(/\/api\/chat$/,"/api/health");
+var RETRIES=5,RETRY_MS=10000;
 
 // Photo / video limits. Files are shrunk in the visitor's browser before sending.
 var PHOTO_SIDE=1024;      // longest side of a photo after shrinking (pixels)
@@ -145,7 +149,32 @@ d.insertBefore(row,d.firstChild);
 msgs.scrollTop=msgs.scrollHeight;
 }
 }
-function toggle(open){box.hidden=!open;fab.setAttribute("aria-expanded",String(open));if(open)inp.focus()}
+var lastPing=0;
+function wake(){
+var n=Date.now();if(n-lastPing<240000)return;lastPing=n;
+try{fetch(HEALTH_URL,{mode:"no-cors",cache:"no-store"}).catch(function(){})}catch(e){}
+}
+function post(body){
+return fetch(CHAT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:body}).then(function(r){
+return r.json().then(function(j){return j},function(){return null}).then(function(j){
+if(!r.ok){var e=new Error((j&&j.error)||("HTTP "+r.status));e.status=r.status;e.json=!!(j&&j.error);throw e}
+return j||{};
+});
+});
+}
+function postRetry(body,onWait){
+var tries=0;
+function go(){
+return post(body).catch(function(e){
+// No status = could not connect (server asleep). 502-504 without our JSON = Render still waking up.
+var transient=!e.status||(e.status>=502&&e.status<=504&&!e.json);
+if(transient&&tries<RETRIES){tries++;onWait(tries);return new Promise(function(ok){setTimeout(ok,RETRY_MS)}).then(go)}
+throw e;
+});
+}
+return go();
+}
+function toggle(open){box.hidden=!open;fab.setAttribute("aria-expanded",String(open));if(open){wake();inp.focus()}}
 
 function renderPrev(){
 prev.innerHTML="";
@@ -166,6 +195,8 @@ return isVideo?"I could not read that video. Try an MP4 recorded on your phone, 
 
 add("Hi! Ask me anything. Use the paperclip to send a photo or a short video. For emergency numbers I will show them instantly. In a real emergency, call 112 now.","bot");
 
+wake();
+document.addEventListener("visibilitychange",function(){if(!document.hidden)wake()});
 fab.addEventListener("click",function(){toggle(box.hidden)});
 box.querySelector("#ai-close").addEventListener("click",function(){toggle(false);fab.focus()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!box.hidden)toggle(false)});
@@ -206,14 +237,16 @@ function done(){busy=false;send.disabled=false;attach.disabled=false;inp.focus()
 function fail(err){
 history.pop();
 var msg=err&&err.message&&/too many|too large/i.test(err.message)?err.message:"";
+if(!msg&&err&&!err.status)msg="Could not reach the AI server. Check your internet and try again in a minute. For emergencies call 112.";
 if(qk.res.length&&!msg){wait.remove()}else{wait.className="ai-m err";wait.textContent=msg||"The AI is not available right now. For emergencies call 112."}
 done();
 }
-fetch(CHAT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:history.slice(-10),context:systemPrompt(),images:att?att.images:[],kind:att?att.kind:""})})
-.then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||"failed");return j})})
+postRetry(JSON.stringify({messages:history.slice(-10),context:systemPrompt(),images:att?att.images:[],kind:att?att.kind:""}),function(n){
+wait.textContent="Waking up the AI server, this can take up to a minute... ("+n+"/"+RETRIES+")";
+})
 .then(function(j){
 var out=String(j.reply||"").trim();
-if(!out)throw new Error("empty");
+if(!out){var ee=new Error("empty");ee.status=200;throw ee}
 wait.textContent=out;history.push({role:"assistant",content:out});msgs.scrollTop=msgs.scrollHeight;done();
 }).catch(fail);
 });
